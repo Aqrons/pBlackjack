@@ -3,19 +3,36 @@ var prompt = require('prompt-sync')();
 const clear = require('console-clear');
 
 var setofCards = []
-
-var bot1 = []//Bot dealer
-var bot1Value = []
-var bot2 = [] //Bot Player
-var bot2Value = []
+var housesCard = []
+var houseValue = 0;
+var playersCard = []
+var playersValue = 0;
 
 
 function runGame(start) {
     prepare("start");
 
     generateCards();
-    botPlayerPlay();
-    dealerBot()
+    displayCards();
+    while (true) {
+        if (playersValue > 21) {
+            cardsValue(housesCard)
+            break;
+        }
+        var getMoreCard = prompt('Hit or stand? ').toLocaleLowerCase();
+        if ((getMoreCard === "hit") || (getMoreCard === "h")) {
+            generateNewCards(playersCard);
+            displayCards();
+        } else if ((getMoreCard === "stand") || (getMoreCard === "s")) {
+            console.log("You stood.")
+            break
+        } else {
+            console.log("That is not an option.")
+        }
+    }
+    housePlays();
+
+
 
     function generateCards() {
         var genCard1 = Math.floor(Math.random() * (setofCards.length - 1));
@@ -32,11 +49,11 @@ function runGame(start) {
         setofCards.splice(genCard4, 1)
 
 
-        bot1.push(simplifyCard(playerCard1.suit, playerCard1.value))
-        bot2.push(simplifyCard(playerCard2.suit, playerCard2.value))
-        bot1.push(simplifyCard(playerCard3.suit, playerCard3.value))
-        bot2.push(simplifyCard(playerCard4.suit, playerCard4.value))
-        cardsValue(bot2);
+        housesCard.push(simplifyCard(playerCard1.suit, playerCard1.value))
+        playersCard.push(simplifyCard(playerCard2.suit, playerCard2.value))
+        housesCard.push(simplifyCard(playerCard3.suit, playerCard3.value))
+        playersCard.push(simplifyCard(playerCard4.suit, playerCard4.value))
+        cardsValue(playersCard);
     }
 
     function simplifyCard(suit, value) {
@@ -94,11 +111,12 @@ function runGame(start) {
     }
 
     function displayCards() {
+        var hiddenHouseCard = [housesCard[0], "?"]
         clear();
-        console.log(bot1)
-        console.log(`House's Value: ${bot1Value} \n\n`)
-        console.log(bot2)
-        console.log(`Your Value: ${[bot2Value]} \n\n`)
+        console.log(hiddenHouseCard)
+        console.log(`House's Value: ? \n\n`)
+        console.log(playersCard)
+        console.log(`Your Value: ${[playersValue]} \n\n`)
     }
 
     function cardsValue(whosCards) {
@@ -142,8 +160,8 @@ function runGame(start) {
                 break;
             }
         }
-        if (whosCards === bot2) bot2Value = cardsSum
-        if (whosCards === bot1) bot1Value = cardsSum
+        if (whosCards === playersCard) playersValue = cardsSum
+        if (whosCards === housesCard) houseValue = cardsSum
         // console.log(amountofA)
     }
 
@@ -157,65 +175,55 @@ function runGame(start) {
         } else {
             console.log('Push!')
         }
-        matches.push(`House Cards: ${bot1} (${bot1Value}), Player Cards: ${bot2} (${bot2Value}), Winner: ${winner}, Cards Remaining: ${setofCards.length}`)
+        matches.push(`House Cards: ${housesCard} (${houseValue}), Player Cards: ${playersCard} (${playersValue}), Winner: ${winner}, Cards Remaining: ${setofCards.length}`)
         saveJson(matches, "data/match-history.json")
     }
 
-    function botPlayerPlay() {
-        if (bot2Value > 21) {
+    function housePlays() {
+        if (playersValue > 21) {
             clear();
-            console.log(bot1)
-            console.log(`House's Value: ${bot1Value} \n\n`)
-            console.log(bot2)
-            console.log(`Your Value: ${[bot2Value]} \n\n`)
+            console.log(housesCard)
+            console.log(`House's Value: ${houseValue} \n\n`)
+            console.log(playersCard)
+            console.log(`Your Value: ${[playersValue]} \n\n`)
             console.log("House wins!")
             return;
         }
-        cardsValue(bot1)
-        if (bot1Value <= 13) {
+        cardsValue(housesCard)
+        if (houseValue <= 13) {
             var prob1 = Math.floor(Math.random() * 101);
-            generateNewCards(bot1)
+            generateNewCards(housesCard)
             clear();
-            if ((prob1 <= 92) && (bot1Value <= 14)) {
+            if ((prob1 <= 92) && (houseValue <= 14)) {
                 var prob2 = Math.floor(Math.random() * 101);
-                generateNewCards(bot1)
+                generateNewCards(housesCard)
                 clear();
-                if ((prob2 <= 20) && (bot1Value <= 16)) {
-                    generateNewCards(bot1)
+                if ((prob2 <= 20) && (houseValue <= 16)) {
+                    generateNewCards(housesCard)
                     clear();
                 }
             }
         } else {
-            cardsValue(bot1)
+            cardsValue(housesCard)
             clear();
         }
 
-        console.log(bot1)
-        console.log(`House's Value: ${bot1Value} \n\n`)
-        console.log(bot2)
-        console.log(`Your Value: ${[bot2Value]} \n\n`)
-        if (bot2Value > 21 && bot1Value > 21) {
+        console.log(housesCard)
+        console.log(`House's Value: ${houseValue} \n\n`)
+        console.log(playersCard)
+        console.log(`Your Value: ${[playersValue]} \n\n`)
+        if (playersValue > 21 && houseValue > 21) {
             gameEnder("push")
-        } else if (bot1Value > 21) {
+        } else if (houseValue > 21) {
             gameEnder("player")
-        } else if (bot1Value > bot2Value) {
+        } else if (houseValue > playersValue) {
             gameEnder("house")
-        } else if (bot2Value > bot1Value) {
+        } else if (playersValue > houseValue) {
             gameEnder("player")
-        } else if (bot2Value === bot1Value) {
+        } else if (playersValue === houseValue) {
             gameEnder("push")
         }
         prepare("end");
-
-    }
-
-    function dealerBot() {
-        while(bot1Value < 17){
-            cardsValue(bot1)
-
-            if(bot1Value > 17) break;
-            generateNewCards() 
-        }
     }
 
 }
