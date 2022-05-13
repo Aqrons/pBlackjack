@@ -7,7 +7,7 @@ var housesCard = []
 var houseValue = 0;
 var playersCard = []
 var playersValue = 0;
-
+var jackpot = 0;
 
 function runGame(start) {
     prepare("start");
@@ -16,6 +16,10 @@ function runGame(start) {
     displayCards();
     while (true) {
         if (playersValue > 21) {
+            cardsValue(housesCard)
+            break;
+        }
+        if (housesCard.length > 2 && houseValue === 21){
             cardsValue(housesCard)
             break;
         }
@@ -31,8 +35,6 @@ function runGame(start) {
         }
     }
     housePlays();
-
-
 
     function generateCards() {
         var genCard1 = Math.floor(Math.random() * (setofCards.length - 1));
@@ -190,24 +192,14 @@ function runGame(start) {
             return;
         }
         cardsValue(housesCard)
-        if (houseValue <= 13) {
-            var prob1 = Math.floor(Math.random() * 101);
+        while (houseValue < 17) {
             generateNewCards(housesCard)
-            clear();
-            if ((prob1 <= 92) && (houseValue <= 14)) {
-                var prob2 = Math.floor(Math.random() * 101);
-                generateNewCards(housesCard)
-                clear();
-                if ((prob2 <= 20) && (houseValue <= 16)) {
-                    generateNewCards(housesCard)
-                    clear();
-                }
-            }
-        } else {
-            cardsValue(housesCard)
-            clear();
-        }
 
+            if(houseValue > 17){
+                break;
+            }
+        }
+        clear();
         console.log(housesCard)
         console.log(`House's Value: ${houseValue} \n\n`)
         console.log(playersCard)
